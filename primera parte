@@ -1,0 +1,160 @@
+#include <iostream>
+#include <string>
+#include <stdexcept>
+#include <iomanip>
+#include <limits>
+
+using namespace std;
+
+// Estructura para representar un producto
+struct Producto {
+    int id;
+    string nombre;
+    double precio;
+    int cantidad;
+};
+
+// Constante para el tamaño del inventario
+const int MAX_PRODUCTOS = 50;
+
+// Prototipos de funciones
+void inicializarInventario(Producto inventario[], int &numProductos);
+void mostrarMenu();
+void mostrarProductos(Producto inventario[], int numProductos);
+void buscarPorNombre(Producto inventario[], int numProductos, const string &nombre);
+void buscarPorID(Producto inventario[], int numProductos, int id);
+void ordenarPorPrecio(Producto inventario[], int numProductos, bool ascendente = true);
+void ordenarPorCantidad(Producto inventario[], int numProductos, bool ascendente = true);
+void agregarProducto(Producto inventario[], int &numProductos);
+void modificarInventario(Producto *producto, int nuevaCantidad);
+void eliminarProducto(Producto inventario[], int &numProductos, int id);
+void limpiarBuffer();
+
+int main() {
+    Producto inventario[MAX_PRODUCTOS];
+    int numProductos = 0;
+    int opcion;
+    
+    // Inicializar con 10 productos de ejemplo
+    inicializarInventario(inventario, numProductos);
+    
+    cout << "=================================================\n";
+    cout << "                    INVENTARIO\n";
+    cout << "=================================================\n\n";
+    
+    do {
+        mostrarMenu();
+        cout << "Ingrese su opcion: ";
+        cin >> opcion;
+        
+        if (cin.fail()) {
+            limpiarBuffer();
+            cout << "\n*** Error: Opcion invalida ***\n\n";
+            continue;
+        }
+        
+        try {
+            switch(opcion) {
+                case 1:
+                    mostrarProductos(inventario, numProductos);
+                    break;
+                    
+                case 2: {
+                    string nombreBuscar;
+                    cout << "\nIngrese el nombre del producto: ";
+                    limpiarBuffer();
+                    getline(cin, nombreBuscar);
+                    buscarPorNombre(inventario, numProductos, nombreBuscar);
+                    break;
+                }
+                
+                case 3: {
+                    int idBuscar;
+                    cout << "\nIngrese el ID del producto: ";
+                    cin >> idBuscar;
+                    buscarPorID(inventario, numProductos, idBuscar);
+                    break;
+                }
+                
+                case 4: {
+                    int tipoOrden;
+                    cout << "\n1. Ascendente (menor a mayor)\n";
+                    cout << "2. Descendente (mayor a menor)\n";
+                    cout << "Tipo de orden: ";
+                    cin >> tipoOrden;
+                    ordenarPorPrecio(inventario, numProductos, tipoOrden == 1);
+                    cout << "\n*** Productos ordenados por precio ***\n";
+                    mostrarProductos(inventario, numProductos);
+                    break;
+                }
+                
+                case 5: {
+                    int tipoOrden;
+                    cout << "\n1. Ascendente (menor a mayor)\n";
+                    cout << "2. Descendente (mayor a menor)\n";
+                    cout << "Tipo de orden: ";
+                    cin >> tipoOrden;
+                    ordenarPorCantidad(inventario, numProductos, tipoOrden == 1);
+                    cout << "\n*** Productos ordenados por cantidad ***\n";
+                    mostrarProductos(inventario, numProductos);
+                    break;
+                }
+                
+                case 6:
+                    agregarProducto(inventario, numProductos);
+                    break;
+                    
+                case 7: {
+                    int idModificar, nuevaCantidad;
+                    cout << "\nIngrese el ID del producto a modificar: ";
+                    cin >> idModificar;
+                    
+                    bool encontrado = false;
+                    for (int i = 0; i < numProductos; i++) {
+                        if (inventario[i].id == idModificar) {
+                            cout << "Producto: " << inventario[i].nombre << endl;
+                            cout << "Cantidad actual: " << inventario[i].cantidad << endl;
+                            cout << "Nueva cantidad: ";
+                            cin >> nuevaCantidad;
+                            
+                            if (nuevaCantidad < 0) {
+                                throw invalid_argument("La cantidad no puede ser negativa");
+                            }
+                            
+                            modificarInventario(&inventario[i], nuevaCantidad);
+                            cout << "\n*** Inventario actualizado correctamente ***\n\n";
+                            encontrado = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!encontrado) {
+                        throw runtime_error("Producto no encontrado");
+                    }
+                    break;
+                }
+                
+                case 8: {
+                    int idEliminar;
+                    cout << "\nIngrese el ID del producto a eliminar: ";
+                    cin >> idEliminar;
+                    eliminarProducto(inventario, numProductos, idEliminar);
+                    break;
+                }
+                
+                case 0:
+                    cout << "\n*** Saliendo del sistema... ***\n";
+                    break;
+                    
+                default:
+                    cout << "\n*** Opcion invalida. Intente nuevamente ***\n\n";
+            }
+        }
+        catch (const exception &e) {
+            cout << "\n*** ERROR: " << e.what() << " ***\n\n";
+        }
+        
+    } while(opcion != 0);
+    
+    return 0;
+}
