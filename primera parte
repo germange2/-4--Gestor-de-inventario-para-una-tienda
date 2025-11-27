@@ -158,3 +158,215 @@ int main() {
     
     return 0;
 }
+
+void inicializarInventario(Producto inventario[], int &numProductos) {
+    inventario[0] = {101, "Laptop HP", 15999.00, 15};
+    inventario[1] = {102, "Mouse Logitech", 299.00, 45};
+    inventario[2] = {103, "Teclado Mecanico", 899.00, 30};
+    inventario[3] = {104, "Monitor Samsung 24\"", 3499.00, 20};
+    inventario[4] = {105, "Disco Duro 1TB", 1200.00, 50};
+    inventario[5] = {106, "Memoria RAM 8GB", 650.00, 40};
+    inventario[6] = {107, "Webcam HD", 450.00, 25};
+    inventario[7] = {108, "Audifonos Bluetooth", 799.00, 35};
+    inventario[8] = {109, "Impresora Epson", 2500.00, 12};
+    inventario[9] = {110, "Router WiFi", 599.00, 28};
+    
+    numProductos = 10;
+}
+
+void mostrarMenu() {
+    cout << "\n-------------------------------------------------\n";
+    cout << "                    MENU\n";
+    cout << "-------------------------------------------------\n";
+    cout << "1. Mostrar todos los productos\n";
+    cout << "2. Buscar producto por nombre\n";
+    cout << "3. Buscar producto por ID\n";
+    cout << "4. Ordenar por precio\n";
+    cout << "5. Ordenar por cantidad\n";
+    cout << "6. Agregar nuevo producto\n";
+    cout << "7. Modificar cantidad de producto\n";
+    cout << "8. Eliminar producto\n";
+    cout << "0. Salir\n";
+    cout << "-------------------------------------------------\n";
+}
+
+void mostrarProductos(Producto inventario[], int numProductos) {
+    if (numProductos == 0) {
+        throw runtime_error("No hay productos en el inventario");
+    }
+    
+    cout << "\n========================================================================\n";
+    cout << left << setw(6) << "ID" 
+         << setw(30) << "NOMBRE" 
+         << right << setw(12) << "        PRECIO" 
+         << setw(12) << "           CANTIDAD" << endl;
+    cout << "========================================================================\n";
+    
+    for (int i = 0; i < numProductos; i++) {
+        cout << left << setw(6) << inventario[i].id
+             << setw(30) << inventario[i].nombre
+             << right << setw(12) << fixed << setprecision(2) << "$" << inventario[i].precio
+             << setw(12) << inventario[i].cantidad << endl;
+    }
+    
+    cout << "========================================================================\n\n";
+}
+
+void buscarPorNombre(Producto inventario[], int numProductos, const string &nombre) {
+    bool encontrado = false;
+    
+    cout << "\n--- Resultados de busqueda ---\n";
+    
+    for (int i = 0; i < numProductos; i++) {
+        // Búsqueda parcial (no distingue mayúsculas/minúsculas)
+        string nombreProducto = inventario[i].nombre;
+        string nombreBusqueda = nombre;
+        
+        // Convertir a minúsculas para comparación
+        for (char &c : nombreProducto) c = tolower(c);
+        for (char &c : nombreBusqueda) c = tolower(c);
+        
+        if (nombreProducto.find(nombreBusqueda) != string::npos) {
+            cout << "\nID: " << inventario[i].id << endl;
+            cout << "Nombre: " << inventario[i].nombre << endl;
+            cout << "Precio: $" << fixed << setprecision(2) << inventario[i].precio << endl;
+            cout << "Cantidad: " << inventario[i].cantidad << endl;
+            cout << "-------------------------------\n";
+            encontrado = true;
+        }
+    }
+    
+    if (!encontrado) {
+        throw runtime_error("No se encontro ningun producto con ese nombre");
+    }
+}
+
+void buscarPorID(Producto inventario[], int numProductos, int id) {
+    for (int i = 0; i < numProductos; i++) {
+        if (inventario[i].id == id) {
+            cout << "\n--- Producto encontrado ---\n";
+            cout << "ID: " << inventario[i].id << endl;
+            cout << "Nombre: " << inventario[i].nombre << endl;
+            cout << "Precio: $" << fixed << setprecision(2) << inventario[i].precio << endl;
+            cout << "Cantidad: " << inventario[i].cantidad << endl;
+            cout << "---------------------------\n\n";
+            return;
+        }
+    }
+    
+    throw runtime_error("No se encontro ningun producto con ese ID");
+}
+
+void ordenarPorPrecio(Producto inventario[], int numProductos, bool ascendente) {
+    // Método de burbuja
+    for (int i = 0; i < numProductos - 1; i++) {
+        for (int j = 0; j < numProductos - i - 1; j++) {
+            bool condicion = ascendente ? 
+                (inventario[j].precio > inventario[j + 1].precio) :
+                (inventario[j].precio < inventario[j + 1].precio);
+            
+            if (condicion) {
+                Producto temp = inventario[j];
+                inventario[j] = inventario[j + 1];
+                inventario[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void ordenarPorCantidad(Producto inventario[], int numProductos, bool ascendente) {
+    // Método de selección
+    for (int i = 0; i < numProductos - 1; i++) {
+        int indiceSeleccionado = i;
+        
+        for (int j = i + 1; j < numProductos; j++) {
+            bool condicion = ascendente ?
+                (inventario[j].cantidad < inventario[indiceSeleccionado].cantidad) :
+                (inventario[j].cantidad > inventario[indiceSeleccionado].cantidad);
+            
+            if (condicion) {
+                indiceSeleccionado = j;
+            }
+        }
+        
+        if (indiceSeleccionado != i) {
+            Producto temp = inventario[i];
+            inventario[i] = inventario[indiceSeleccionado];
+            inventario[indiceSeleccionado] = temp;
+        }
+    }
+}
+
+void agregarProducto(Producto inventario[], int &numProductos) {
+    if (numProductos >= MAX_PRODUCTOS) {
+        throw runtime_error("El inventario esta lleno");
+    }
+    
+    Producto nuevo;
+    
+    cout << "\n--- Agregar nuevo producto ---\n";
+    cout << "ID: ";
+    cin >> nuevo.id;
+    
+    // Verificar que el ID no exista
+    for (int i = 0; i < numProductos; i++) {
+        if (inventario[i].id == nuevo.id) {
+            throw invalid_argument("Ya existe un producto con ese ID");
+        }
+    }
+    
+    cout << "Nombre: ";
+    limpiarBuffer();
+    getline(cin, nuevo.nombre);
+    
+    cout << "Precio: $";
+    cin >> nuevo.precio;
+    
+    if (nuevo.precio < 0) {
+        throw invalid_argument("El precio no puede ser negativo");
+    }
+    
+    cout << "Cantidad: ";
+    cin >> nuevo.cantidad;
+    
+    if (nuevo.cantidad < 0) {
+        throw invalid_argument("La cantidad no puede ser negativa");
+    }
+    
+    inventario[numProductos] = nuevo;
+    numProductos++;
+    
+    cout << "\n*** Producto agregado correctamente ***\n\n";
+}
+
+void modificarInventario(Producto *producto, int nuevaCantidad) {
+    producto->cantidad = nuevaCantidad;
+}
+
+void eliminarProducto(Producto inventario[], int &numProductos, int id) {
+    int indice = -1;
+    
+    for (int i = 0; i < numProductos; i++) {
+        if (inventario[i].id == id) {
+            indice = i;
+            break;
+        }
+    }
+    
+    if (indice == -1) {
+        throw runtime_error("No se encontro el producto a eliminar");
+    }
+    
+    // Desplazar elementos
+    for (int i = indice; i < numProductos - 1; i++) {
+        inventario[i] = inventario[i + 1];
+    }
+    
+    numProductos--;
+    cout << "\n*** Producto eliminado correctamente ***\n\n";
+}
+
+void limpiarBuffer() {
+    cin.clear();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+}
